@@ -1,4 +1,4 @@
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import * as React from "react";
 import styled from "styled-components";
 import { FaEye, FaLock, FaLockOpen, FaRegEye } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
@@ -113,53 +113,69 @@ export function ContainerPanel(props) {
     const isRootPanel = props.panelRect.panel === props.state.ref.current.rootPanel;
     const isLocked = props.panelRect.panel.isLocked;
     const generateInnerTabRow = () => {
-        return (_jsxs(StyledTabRowInner, { draggable: true, tabHeight: props.tabHeight, tabCount: panelRect.panel.contentList.length, onMouseDown: (ev) => {
+        return (React.createElement(StyledTabRowInner, { draggable: true, tabHeight: props.tabHeight, tabCount: panelRect.panel.contentList.length, onMouseDown: (ev) => {
                 props.onClickPanel();
                 props.onDragHeader(ev, null);
-            }, children: [panelRect.panel.contentList.map((content, tabNumber) => (_jsxs(StyledTab, { tabNumber: tabNumber, isCurrentTab: panelRect.panel.currentTabIndex == tabNumber, onMouseDown: (ev) => {
+            } },
+            panelRect.panel.contentList.map((content, tabNumber) => (React.createElement(StyledTab, { key: content.contentId, tabNumber: tabNumber, isCurrentTab: panelRect.panel.currentTabIndex == tabNumber, onMouseDown: (ev) => {
+                    props.onClickTab(tabNumber);
+                    props.onDragHeader(ev, tabNumber);
+                } },
+                React.createElement("span", null, content.title || `Content ${content.contentId}`),
+                React.createElement(StyledButton, { title: "Close Tab", isCurrentTab: panelRect.panel.currentTabIndex == tabNumber, onClick: (ev) => {
                         props.onClickTab(tabNumber);
-                        props.onDragHeader(ev, tabNumber);
-                    }, children: [_jsx("span", { children: content.title || `Content ${content.contentId}` }), _jsx(StyledButton, { title: "Close Tab", isCurrentTab: panelRect.panel.currentTabIndex == tabNumber, onClick: (ev) => {
-                                props.onClickTab(tabNumber);
-                                props.onCloseTab(ev, tabNumber);
-                            }, children: _jsx(IoClose, {}) })] }, content.contentId))), _jsx(StyledTabRowEmptySpace, { children: !isRootPanel && (_jsxs(_Fragment, { children: [_jsx(StyledButton, { title: "Close Panel", isCurrentTab: true, onClick: (ev) => {
-                                    props.onCloseWindow(ev);
-                                }, children: _jsx(IoClose, {}) }), _jsx(StyledButton, { title: !isLocked ? "Lock Panel" : "Unlock Panel", isCurrentTab: true, onClick: (ev) => {
-                                    props.onLockPanel(ev, !isLocked);
-                                }, children: isLocked ? _jsx(FaLockOpen, { size: 8 }) : _jsx(FaLock, { size: 8 }) }), _jsx(StyledButton, { title: "Hide Header", isCurrentTab: true, onClick: (ev) => {
-                                    props.onHidePanel(ev, !hiddenTabRow);
-                                }, children: _jsx(FaRegEye, { size: 8 }) })] })) })] }));
+                        props.onCloseTab(ev, tabNumber);
+                    } },
+                    React.createElement(IoClose, null))))),
+            React.createElement(StyledTabRowEmptySpace, null, !isRootPanel && (React.createElement(React.Fragment, null,
+                React.createElement(StyledButton, { title: "Close Panel", isCurrentTab: true, onClick: (ev) => {
+                        props.onCloseWindow(ev);
+                    } },
+                    React.createElement(IoClose, null)),
+                React.createElement(StyledButton, { title: !isLocked ? "Lock Panel" : "Unlock Panel", isCurrentTab: true, onClick: (ev) => {
+                        props.onLockPanel(ev, !isLocked);
+                    } }, isLocked ? React.createElement(FaLockOpen, { size: 8 }) : React.createElement(FaLock, { size: 8 })),
+                React.createElement(StyledButton, { title: "Hide Header", isCurrentTab: true, onClick: (ev) => {
+                        props.onHidePanel(ev, !hiddenTabRow);
+                    } },
+                    React.createElement(FaRegEye, { size: 8 })))))));
     };
     const generateCompactModeSwitch = () => {
-        return (_jsx(StyledButton, { title: "Show Header", style: { position: "absolute", right: 2 }, isCurrentTab: true, onClick: (ev) => {
+        return (React.createElement(StyledButton, { title: "Show Header", style: { position: "absolute", right: 2 }, isCurrentTab: true, onClick: (ev) => {
                 props.onHidePanel(ev, !hiddenTabRow);
-            }, children: _jsx(FaEye, { size: 8, style: { color: "gray" } }) }));
+            } },
+            React.createElement(FaEye, { size: 8, style: { color: "gray" } })));
     };
     const generateCompactTabRow = () => {
         if (panelRect.panel.contentList.length === 1) {
-            return _jsx(_Fragment, { children: generateCompactModeSwitch() });
+            return React.createElement(React.Fragment, null, generateCompactModeSwitch());
         }
         let hasNext = panelRect.panel.currentTabIndex < panelRect.panel.contentList.length - 1;
         let hasPrev = panelRect.panel.currentTabIndex > 0;
-        return (_jsxs(StyledTabRowInner, { tabHeight: props.tabHeight, tabCount: panelRect.panel.contentList.length, onMouseDown: (ev) => {
+        return (React.createElement(StyledTabRowInner, { tabHeight: props.tabHeight, tabCount: panelRect.panel.contentList.length, onMouseDown: (ev) => {
                 props.onClickPanel();
                 props.onDragHeader(ev, null);
-            }, children: [_jsx(StyledButton, { onClick: () => {
-                        if (hasPrev) {
-                            props.onClickTab(panelRect.panel.currentTabIndex - 1);
-                        }
-                    }, isCurrentTab: true, children: "<" }), _jsx(StyledButton, { isCurrentTab: true, children: panelRect.panel.currentTabIndex + 1 }), _jsx(StyledButton, { onClick: () => {
-                        if (hasNext) {
-                            props.onClickTab(panelRect.panel.currentTabIndex + 1);
-                        }
-                    }, isCurrentTab: true, children: ">" }), generateCompactModeSwitch()] }));
+            } },
+            React.createElement(StyledButton, { onClick: () => {
+                    if (hasPrev) {
+                        props.onClickTab(panelRect.panel.currentTabIndex - 1);
+                    }
+                }, isCurrentTab: true }, "<"),
+            React.createElement(StyledButton, { isCurrentTab: true }, panelRect.panel.currentTabIndex + 1),
+            React.createElement(StyledButton, { onClick: () => {
+                    if (hasNext) {
+                        props.onClickTab(panelRect.panel.currentTabIndex + 1);
+                    }
+                }, isCurrentTab: true }, ">"),
+            generateCompactModeSwitch()));
     };
-    return (_jsx(StyledPanelRoot, { style: {
+    return (React.createElement(StyledPanelRoot, { style: {
             left: `${panelRect.rect.x}px`,
             top: `${panelRect.rect.y}px`,
             width: `${panelRect.rect.w + 1}px`,
             height: `${panelRect.rect.h + 1}px`,
             zIndex: panelRect.zIndex * 3 + (isActivePanel ? 1 : 0),
-        }, children: _jsx(StyledTabRow, { className: isActivePanel ? "active" : undefined, children: !hiddenTabRow ? generateInnerTabRow() : generateCompactTabRow() }) }));
+        } },
+        React.createElement(StyledTabRow, { className: isActivePanel ? "active" : undefined }, !hiddenTabRow ? generateInnerTabRow() : generateCompactTabRow())));
 }
 //# sourceMappingURL=Panel.js.map

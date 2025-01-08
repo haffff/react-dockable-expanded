@@ -11,4 +11,4 @@ export declare function ContainerPanel(props: {
     onCloseWindow: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     onLockPanel: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>, locked: boolean) => void;
     onHidePanel: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>, hidden: boolean) => void;
-}): import("react/jsx-runtime").JSX.Element;
+}): React.JSX.Element;

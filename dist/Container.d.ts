@@ -1,3 +1,4 @@
+import * as React from "react";
 import * as Dockable from "./index.js";
 export declare function Container(props: {
     state: Dockable.RefState<Dockable.State>;
@@ -5,4 +6,4 @@ export declare function Container(props: {
     resizeHandleSize?: number;
     dividerSize?: number;
     tabHeight?: number;
-}): import("react/jsx-runtime").JSX.Element;
+}): React.JSX.Element;
