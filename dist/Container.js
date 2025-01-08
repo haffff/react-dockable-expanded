@@ -1,3 +1,4 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from "react";
 import * as Dockable from "./index.js";
 import styled from "styled-components";
@@ -102,77 +103,69 @@ export function Container(props) {
             });
         }
     };
-    return (React.createElement(StyledContainer, { ref: rootRef },
-        layoutRef.current.panelRects.map((panelRect) => (React.createElement(Dockable.ContainerPanel, { key: panelRect.panel.id, state: props.state, panelRect: panelRect, tabHeight: tabHeight, onClickPanel: () => handleClickedPanel(props.state, panelRect.panel, null), onClickTab: (tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber), onCloseTab: (ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber), onCloseWindow: (ev) => handleCloseWindow(ev, props.state, panelRect.panel), onDragHeader: (ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber), onHidePanel: (ev, hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden), onLockPanel: (ev, locked) => handleLockedPanel(props.state, panelRect.panel, locked) }))),
-        layoutRef.current.content.map((layoutContent) => (React.createElement(StyledContentRoot, { key: layoutContent.content.contentId, isCurrentTab: layoutContent.panel.currentTabIndex == layoutContent.tabIndex, onMouseDown: () => handleClickedPanel(props.state, layoutContent.panel, null), style: {
-                left: layoutContent.layoutPanel.rect.x + "px",
-                top: layoutContent.layoutPanel.rect.y + tabHeight + "px",
-                width: layoutContent.layoutPanel.rect.w + "px",
-                height: layoutContent.layoutPanel.rect.h - tabHeight + "px",
-                zIndex: layoutContent.layoutPanel.zIndex * 3 + 1,
-            } },
-            React.createElement(Dockable.ContentContext.Provider, { value: {
-                    layoutContent,
-                    setTitle: (title) => setTitle(layoutContent, title),
-                    setPreferredSize: (w, h) => setPreferredSize(layoutContent, w, h),
-                } },
-                React.createElement(StyledContentInner, null, layoutContent.content.element)),
-            layoutContent.panel.floating && (React.createElement(StyledBottomRightResizeHandle, { size: resizeHandleSize, onMouseDown: (ev) => {
-                    handleClickedPanel(props.state, layoutContent.panel, null);
-                    handleDraggedEdge(ev, props.state, layoutRef, layoutContent.panel);
-                } }))))),
-        layoutRef.current.dividers.map((divider, i) => (React.createElement(StyledDivider, { key: i, onMouseDown: (ev) => handleDraggedDivider(ev, props.state, divider), style: {
-                width: (divider.rect.w || dividerSize) + "px",
-                height: (divider.rect.h || dividerSize) + "px",
-                position: "absolute",
-                left: divider.rect.x - (!divider.vertical ? dividerSize / 2 : 0) + "px",
-                top: divider.rect.y - (divider.vertical ? dividerSize / 2 : 0) + "px",
-                cursor: !divider.vertical ? "ew-resize" : "ns-resize",
-                zIndex: 1,
-                userSelect: "none",
-            } }))),
-        props.state.ref.current.previewAnchor && (React.createElement("div", { style: {
-                position: "absolute",
-                left: props.state.ref.current.previewAnchor.previewRect.x + "px",
-                top: props.state.ref.current.previewAnchor.previewRect.y + "px",
-                width: props.state.ref.current.previewAnchor.previewRect.w - 1 + "px",
-                height: props.state.ref.current.previewAnchor.previewRect.h - 1 + "px",
-                backgroundColor: "var(--dockable-overlayColor)",
-                zIndex: 1000,
-            } })),
-        props.state.ref.current.showAnchors &&
-            layoutRef.current.anchors.map((anchor, i) => props.state.ref.current.draggedPanel !== anchor.panel && (React.createElement("div", { key: i, style: {
+    return (_jsxs(StyledContainer, { ref: rootRef, children: [layoutRef.current.panelRects.map((panelRect) => (_jsx(Dockable.ContainerPanel, { state: props.state, panelRect: panelRect, tabHeight: tabHeight, onClickPanel: () => handleClickedPanel(props.state, panelRect.panel, null), onClickTab: (tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber), onCloseTab: (ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber), onCloseWindow: (ev) => handleCloseWindow(ev, props.state, panelRect.panel), onDragHeader: (ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber), onHidePanel: (ev, hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden), onLockPanel: (ev, locked) => handleLockedPanel(props.state, panelRect.panel, locked) }, panelRect.panel.id))), layoutRef.current.content.map((layoutContent) => (_jsxs(StyledContentRoot, { isCurrentTab: layoutContent.panel.currentTabIndex == layoutContent.tabIndex, onMouseDown: () => handleClickedPanel(props.state, layoutContent.panel, null), style: {
+                    left: layoutContent.layoutPanel.rect.x + "px",
+                    top: layoutContent.layoutPanel.rect.y + tabHeight + "px",
+                    width: layoutContent.layoutPanel.rect.w + "px",
+                    height: layoutContent.layoutPanel.rect.h - tabHeight + "px",
+                    zIndex: layoutContent.layoutPanel.zIndex * 3 + 1,
+                }, children: [_jsx(Dockable.ContentContext.Provider, { value: {
+                            layoutContent,
+                            setTitle: (title) => setTitle(layoutContent, title),
+                            setPreferredSize: (w, h) => setPreferredSize(layoutContent, w, h),
+                        }, children: _jsx(StyledContentInner, { children: layoutContent.content.element }) }), layoutContent.panel.floating && (_jsx(StyledBottomRightResizeHandle, { size: resizeHandleSize, onMouseDown: (ev) => {
+                            handleClickedPanel(props.state, layoutContent.panel, null);
+                            handleDraggedEdge(ev, props.state, layoutRef, layoutContent.panel);
+                        } }))] }, layoutContent.content.contentId))), layoutRef.current.dividers.map((divider, i) => (_jsx(StyledDivider, { onMouseDown: (ev) => handleDraggedDivider(ev, props.state, divider), style: {
+                    width: (divider.rect.w || dividerSize) + "px",
+                    height: (divider.rect.h || dividerSize) + "px",
                     position: "absolute",
-                    left: anchor.x - anchorSize + "px",
-                    top: anchor.y - anchorSize + "px",
-                    width: "0px",
-                    height: "0px",
-                    borderTop: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Bottom ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    borderBottom: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Top ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    borderLeft: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Right ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    borderRight: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Left ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    zIndex: 1001,
-                } })))));
+                    left: divider.rect.x - (!divider.vertical ? dividerSize / 2 : 0) + "px",
+                    top: divider.rect.y - (divider.vertical ? dividerSize / 2 : 0) + "px",
+                    cursor: !divider.vertical ? "ew-resize" : "ns-resize",
+                    zIndex: 1,
+                    userSelect: "none",
+                } }, i))), props.state.ref.current.previewAnchor && (_jsx("div", { style: {
+                    position: "absolute",
+                    left: props.state.ref.current.previewAnchor.previewRect.x + "px",
+                    top: props.state.ref.current.previewAnchor.previewRect.y + "px",
+                    width: props.state.ref.current.previewAnchor.previewRect.w - 1 + "px",
+                    height: props.state.ref.current.previewAnchor.previewRect.h - 1 + "px",
+                    backgroundColor: "var(--dockable-overlayColor)",
+                    zIndex: 1000,
+                } })), props.state.ref.current.showAnchors &&
+                layoutRef.current.anchors.map((anchor, i) => props.state.ref.current.draggedPanel !== anchor.panel && (_jsx("div", { style: {
+                        position: "absolute",
+                        left: anchor.x - anchorSize + "px",
+                        top: anchor.y - anchorSize + "px",
+                        width: "0px",
+                        height: "0px",
+                        borderTop: anchorSize +
+                            "px solid " +
+                            (anchor.mode == Dockable.DockMode.Bottom ||
+                                anchor.mode == Dockable.DockMode.Full
+                                ? "var(--dockable-anchorColor)"
+                                : "transparent"),
+                        borderBottom: anchorSize +
+                            "px solid " +
+                            (anchor.mode == Dockable.DockMode.Top ||
+                                anchor.mode == Dockable.DockMode.Full
+                                ? "var(--dockable-anchorColor)"
+                                : "transparent"),
+                        borderLeft: anchorSize +
+                            "px solid " +
+                            (anchor.mode == Dockable.DockMode.Right ||
+                                anchor.mode == Dockable.DockMode.Full
+                                ? "var(--dockable-anchorColor)"
+                                : "transparent"),
+                        borderRight: anchorSize +
+                            "px solid " +
+                            (anchor.mode == Dockable.DockMode.Left ||
+                                anchor.mode == Dockable.DockMode.Full
+                                ? "var(--dockable-anchorColor)"
+                                : "transparent"),
+                        zIndex: 1001,
+                    } }, i)))] }));
 }
 function handleDraggedDivider(ev, state, divider) {
     ev.preventDefault();
