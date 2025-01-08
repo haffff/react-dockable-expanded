@@ -35,6 +35,8 @@ export interface Panel {
     preferredWidth: number;
     preferredHeight: number;
     ephemeral: boolean;
+    isHeaderHidden: boolean;
+    isLocked: boolean;
 }
 export interface Content {
     contentId: ContentId;

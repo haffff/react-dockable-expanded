@@ -49,6 +49,7 @@ export function makePanel(state) {
         preferredWidth: 300,
         preferredHeight: 250,
         ephemeral: false,
+        isHeaderHidden: false,
     };
     state.floatingPanels.push(panel);
     return panel;

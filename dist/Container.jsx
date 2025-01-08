@@ -105,8 +105,21 @@ export function Container(props) {
         }
     };
     return <StyledContainer ref={rootRef}>
+        {layoutRef.current.panelRects.map(panelRect => <Dockable.ContainerPanel 
+        key={panelRect.panel.id} 
+        state={props.state} 
+        panelRect={panelRect} 
+        tabHeight={tabHeight} 
+        onClickPanel={() => handleClickedPanel(props.state, panelRect.panel, null)} 
+        onClickTab={(tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber)} 
+        onCloseTab={(ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber)} 
+        onCloseWindow={(ev) => handleCloseWindow(ev, props.state, panelRect.panel)}
+        onDragHeader={(ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber)}
+        onHidePanel={(ev,hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden)}
+        onLockPanel={(ev,locked) => handleLockedPanel(props.state, panelRect.panel, locked)}
+        />)}
 
-        {layoutRef.current.panelRects.map(panelRect => <Dockable.ContainerPanel key={panelRect.panel.id} state={props.state} panelRect={panelRect} tabHeight={tabHeight} onClickPanel={() => handleClickedPanel(props.state, panelRect.panel, null)} onClickTab={(tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber)} onCloseTab={(ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber)} onDragHeader={(ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber)}/>)}
+        {layoutRef.current.panelRects.length > 1 && "x" }
 
         {layoutRef.current.content.map(layoutContent => <StyledContentRoot key={layoutContent.content.contentId} isCurrentTab={layoutContent.panel.currentTabIndex == layoutContent.tabIndex} onMouseDown={() => handleClickedPanel(props.state, layoutContent.panel, null)} style={{
                 left: (layoutContent.layoutPanel.rect.x) + "px",
@@ -173,6 +186,7 @@ export function Container(props) {
 
     </StyledContainer>;
 }
+
 function handleDraggedDivider(ev, state, divider) {
     ev.preventDefault();
     const onMouseMove = (ev) => {
@@ -190,6 +204,7 @@ function handleDraggedDivider(ev, state, divider) {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
 }
+
 function handleDraggedEdge(ev, state, layout, panel) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -210,9 +225,13 @@ function handleDraggedEdge(ev, state, layout, panel) {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
 }
+
 function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, draggedTabIndex) {
     ev.preventDefault();
     ev.stopPropagation();
+    if(draggedPanel.isLocked && draggedPanel !== state.ref.current.rootPanel) {
+        return;
+    }
     const startMouseX = ev.pageX;
     const startMouseY = ev.pageY;
     const layoutPanel = layout.current.panelRects.find(p => p.panel === draggedPanel);
@@ -276,6 +295,7 @@ function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, dra
             state.commit();
         }
     };
+
     const onMouseUp = () => {
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
@@ -299,6 +319,7 @@ function handleClickedPanel(state, clickedPanel, tabNumber) {
     Dockable.setPanelActiveAndBringToFront(state.ref.current, clickedPanel);
     state.commit();
 }
+
 function handleClosedTab(ev, state, panel, tabNumber) {
     ev.preventDefault();
     const content = panel.contentList[tabNumber];
@@ -306,4 +327,30 @@ function handleClosedTab(ev, state, panel, tabNumber) {
     Dockable.coallesceEmptyPanels(state.ref.current);
     state.commit();
 }
+
+function handleCloseWindow(ev, state, panel) {
+    ev.preventDefault();
+    panel.contentList.forEach(({contentId}) => Dockable.removeContent(state.ref.current, panel, contentId));
+    
+    // i dont know why but it doesn't work without this
+    // it seems to leave active tab
+    if(panel.contentList.length > 0) {
+        const content = panel.contentList[0];
+        Dockable.removeContent(state.ref.current, panel, content.contentId);
+    }
+
+    Dockable.coallesceEmptyPanels(state.ref.current);
+    state.commit();
+}
+
+function handleHiddenPanel(state, panel, hidden) {
+    panel.isHeaderHidden = hidden;
+    state.commit();
+}
+
+function handleLockedPanel(state, panel, locked) {
+    panel.isLocked = locked;
+    state.commit();
+}
+
 //# sourceMappingURL=Container.jsx.map

@@ -81,7 +81,7 @@ function App()
         <div style={{
             padding: "0.5em",
             display: "grid",
-            gridTemplate: "auto / auto auto auto 1fr",
+            gridTemplate: "auto / auto auto auto auto auto auto auto 1fr",
             gridGap: "0.25em",
         }}>
             <button onClick={ spawnCounter }>
@@ -94,6 +94,18 @@ function App()
             
             <button onClick={ spawnTextEditor }>
                 Spawn Text Editor
+            </button>
+
+            <button onClick={ () => {
+                // Hide the active panel
+                let activePanel = state.ref.current.activePanel;
+                if (activePanel)
+                {
+                    activePanel.isHeaderHidden = !activePanel.isHeaderHidden;
+                    state.commit();
+                }
+            }}>
+                Toggle active panels compact mode
             </button>
         </div>
 

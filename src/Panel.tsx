@@ -95,7 +95,7 @@ const StyledTab = styled.div<{
 `
 
 
-const StyledCloseButton = styled.button<{
+const StyledButton = styled.button<{
     isCurrentTab: boolean,
 }>`
     pointer-events: auto;
@@ -176,7 +176,7 @@ export function ContainerPanel(props: {
                         }}
                     >
                         <span>{ content.title || `Content ${ content.contentId }` }</span>
-                        <StyledCloseButton
+                        <StyledButton
                             isCurrentTab={ panelRect.panel.currentTabIndex == tabNumber }
                             onClick={ ev => {
                                 props.onClickTab(tabNumber)
@@ -184,7 +184,7 @@ export function ContainerPanel(props: {
                             }}
                         >
                             ×
-                        </StyledCloseButton>
+                        </StyledButton>
                     </StyledTab>
                 )}
 
