@@ -118,9 +118,7 @@ export function Container(props) {
         onHidePanel={(ev,hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden)}
         onLockPanel={(ev,locked) => handleLockedPanel(props.state, panelRect.panel, locked)}
         />)}
-
-        {layoutRef.current.panelRects.length > 1 && "x" }
-
+        
         {layoutRef.current.content.map(layoutContent => <StyledContentRoot key={layoutContent.content.contentId} isCurrentTab={layoutContent.panel.currentTabIndex == layoutContent.tabIndex} onMouseDown={() => handleClickedPanel(props.state, layoutContent.panel, null)} style={{
                 left: (layoutContent.layoutPanel.rect.x) + "px",
                 top: (layoutContent.layoutPanel.rect.y + tabHeight) + "px",
