@@ -105,6 +105,8 @@ const StyledButton = styled.button `
 const StyledTabRowEmptySpace = styled.div `
   min-width: 2em;
   pointer-events: none;
+  display: flex;
+  flex-direction: row-reverse;
 `;
 export function ContainerPanel(props) {
     const panelRect = props.panelRect;
