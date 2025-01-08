@@ -1,8 +1,8 @@
 /// <reference types="react" />
 import { Rect } from "./rect.js";
-export declare type PanelId = number;
-export declare type ContentId = number;
-export declare type ContentElement = JSX.Element;
+export type PanelId = number;
+export type ContentId = number;
+export type ContentElement = JSX.Element;
 export interface State {
     idNext: number;
     rootPanel: Panel;

@@ -53,6 +53,9 @@ export interface Panel
     preferredHeight: number
 
     ephemeral: boolean
+
+    isHeaderHidden: boolean;
+    isLocked: boolean;
 }
 
 
@@ -129,6 +132,9 @@ export function makeState(): State
             preferredHeight: 250,
 
             ephemeral: false,
+
+            isHeaderHidden: false,
+            isLocked: false,
         },
         floatingPanels: [],
         activePanel: null,
@@ -159,6 +165,9 @@ export function makePanel(state: State): Panel
         preferredHeight: 250,
 
         ephemeral: false,
+
+        isHeaderHidden: false,
+        isLocked: false,
     }
     state.floatingPanels.push(panel)
     return panel
