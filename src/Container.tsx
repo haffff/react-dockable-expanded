@@ -408,6 +408,8 @@ function handleDraggedHeader(
   ev.preventDefault();
   ev.stopPropagation();
 
+  if (draggedPanel.isLocked) return;
+
   const startMouseX = ev.pageX;
   const startMouseY = ev.pageY;
 

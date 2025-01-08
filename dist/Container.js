@@ -213,6 +213,8 @@ function handleDraggedEdge(ev, state, layout, panel) {
 function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, draggedTabIndex) {
     ev.preventDefault();
     ev.stopPropagation();
+    if (draggedPanel.isLocked)
+        return;
     const startMouseX = ev.pageX;
     const startMouseY = ev.pageY;
     const layoutPanel = layout.current.panelRects.find((p) => p.panel === draggedPanel);
