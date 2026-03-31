@@ -36,7 +36,7 @@ window.addEventListener("mousemove", (ev: MouseEvent) =>
 {
     mousePos.x = ev.pageX
     mousePos.y = ev.pageY
-})
+}, { passive: true })
 
 
 export function spawnFloating(
