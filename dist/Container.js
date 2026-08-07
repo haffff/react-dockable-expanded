@@ -2,16 +2,16 @@ import * as React from "react";
 import * as Dockable from "./index.js";
 import styled from "styled-components";
 const StyledContainer = styled.div `
-  --dockable-voidBkg: #252525;
+  --dockable-voidBkg: #1a1a1a;
   --dockable-panelBkg: #1e1e1e;
-  --dockable-panelInactiveBorder: #393939;
-  --dockable-panelActiveBorder: #777777;
-  --dockable-panelTabBkg: #2d2d2d;
-  --dockable-panelTabTextColor: #ffffff;
-  --dockable-overlayColor: #00aaff44;
+  --dockable-panelInactiveBorder: #333333;
+  --dockable-panelActiveBorder: #555555;
+  --dockable-panelTabBkg: #272727;
+  --dockable-panelTabTextColor: #e8e8e8;
+  --dockable-overlayColor: #00aaff18;
   --dockable-anchorColor: #00aaff;
-  --dockable-buttonHoverBkg: #323232;
-  --dockable-scrollbarColor: #777777;
+  --dockable-buttonHoverBkg: #3a3a3a;
+  --dockable-scrollbarColor: #555555;
 
   width: 100%;
   height: 100%;
@@ -48,23 +48,29 @@ const StyledBottomRightResizeHandle = styled.div `
 
   cursor: nwse-resize;
   z-index: 1;
+  border-radius: 2px 0 0 0;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: var(--dockable-overlayColor);
+    background-color: var(--dockable-anchorColor);
+    opacity: 0.5;
   }
 `;
 const StyledDivider = styled.div `
+  transition: background-color 0.15s ease;
+
   &:hover {
-    background-color: var(--dockable-overlayColor);
+    background-color: var(--dockable-anchorColor);
+    opacity: 0.5;
   }
 `;
 export function Container(props) {
     const [rect, setRect] = React.useState(new Dockable.Rect(0, 0, 0, 0));
     const rootRef = React.useRef(null);
     const anchorSize = props.anchorSize ?? 5;
-    const resizeHandleSize = props.anchorSize ?? 10;
-    const dividerSize = props.anchorSize ?? 6;
-    const tabHeight = props.anchorSize ?? 25;
+    const resizeHandleSize = props.resizeHandleSize ?? 10;
+    const dividerSize = props.dividerSize ?? 6;
+    const tabHeight = props.tabHeight ?? 25;
     React.useLayoutEffect(() => {
         const onResize = () => {
             if (!rootRef.current)
@@ -103,7 +109,7 @@ export function Container(props) {
         }
     };
     return (React.createElement(StyledContainer, { ref: rootRef },
-        layoutRef.current.panelRects.map((panelRect) => (React.createElement(Dockable.ContainerPanel, { key: panelRect.panel.id, state: props.state, panelRect: panelRect, tabHeight: tabHeight, onClickPanel: () => handleClickedPanel(props.state, panelRect.panel, null), onClickTab: (tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber), onCloseTab: (ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber), onCloseWindow: (ev) => handleCloseWindow(ev, props.state, panelRect.panel), onDragHeader: (ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber), onHidePanel: (ev, hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden), onLockPanel: (ev, locked) => handleLockedPanel(props.state, panelRect.panel, locked) }))),
+        layoutRef.current.panelRects.map((panelRect) => (React.createElement(Dockable.ContainerPanel, { key: panelRect.panel.id, state: props.state, panelRect: panelRect, tabHeight: tabHeight, onClickPanel: () => handleClickedPanel(props.state, panelRect.panel, null), onClickTab: (tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber), onCloseTab: (ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber), onCloseWindow: (ev) => handleCloseWindow(ev, props.state, panelRect.panel), onPopOut: (ev) => handlePopOut(ev, props.onPopOut, props.state, panelRect.panel), onDragHeader: (ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber), onHidePanel: (ev, hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden), onLockPanel: (ev, locked) => handleLockedPanel(props.state, panelRect.panel, locked) }))),
         layoutRef.current.content.map((layoutContent) => (React.createElement(StyledContentRoot, { key: layoutContent.content.contentId, isCurrentTab: layoutContent.panel.currentTabIndex == layoutContent.tabIndex, onMouseDown: () => handleClickedPanel(props.state, layoutContent.panel, null), style: {
                 left: layoutContent.layoutPanel.rect.x + "px",
                 top: layoutContent.layoutPanel.rect.y + tabHeight + "px",
@@ -138,52 +144,46 @@ export function Container(props) {
                 width: props.state.ref.current.previewAnchor.previewRect.w - 1 + "px",
                 height: props.state.ref.current.previewAnchor.previewRect.h - 1 + "px",
                 backgroundColor: "var(--dockable-overlayColor)",
+                border: "2px solid var(--dockable-anchorColor)",
+                boxSizing: "border-box",
                 zIndex: 1000,
+                pointerEvents: "none",
             } })),
         props.state.ref.current.showAnchors &&
             layoutRef.current.anchors.map((anchor, i) => props.state.ref.current.draggedPanel !== anchor.panel && (React.createElement("div", { key: i, style: {
                     position: "absolute",
                     left: anchor.x - anchorSize + "px",
                     top: anchor.y - anchorSize + "px",
-                    width: "0px",
-                    height: "0px",
-                    borderTop: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Bottom ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    borderBottom: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Top ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    borderLeft: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Right ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
-                    borderRight: anchorSize +
-                        "px solid " +
-                        (anchor.mode == Dockable.DockMode.Left ||
-                            anchor.mode == Dockable.DockMode.Full
-                            ? "var(--dockable-anchorColor)"
-                            : "transparent"),
+                    width: anchorSize * 2 + "px",
+                    height: anchorSize * 2 + "px",
+                    borderRadius: "50%",
+                    backgroundColor: "var(--dockable-anchorColor)",
+                    opacity: 0.85,
+                    boxShadow: "0 0 0 3px rgba(0,170,255,0.2)",
                     zIndex: 1001,
+                    pointerEvents: "none",
                 } })))));
 }
 function handleDraggedDivider(ev, state, divider) {
     ev.preventDefault();
+    let latestX = ev.pageX;
+    let latestY = ev.pageY;
+    let rafId = null;
     const onMouseMove = (ev) => {
-        const mouseX = ev.pageX;
-        const mouseY = ev.pageY;
-        divider.panel.splitSize = Math.max(0.05, Math.min(0.95, ((divider.vertical ? mouseY : mouseX) - divider.resizeMin) /
-            (divider.resizeMax - divider.resizeMin)));
-        state.commit();
+        latestX = ev.pageX;
+        latestY = ev.pageY;
+        if (rafId !== null)
+            return;
+        rafId = requestAnimationFrame(() => {
+            rafId = null;
+            divider.panel.splitSize = Math.max(0.05, Math.min(0.95, ((divider.vertical ? latestY : latestX) - divider.resizeMin) /
+                (divider.resizeMax - divider.resizeMin)));
+            state.commit();
+        });
     };
     const onMouseUp = () => {
+        if (rafId !== null)
+            cancelAnimationFrame(rafId);
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
     };
@@ -197,13 +197,23 @@ function handleDraggedEdge(ev, state, layout, panel) {
     const startMouseY = ev.pageY;
     const layoutPanel = layout.current.panelRects.find((p) => p.panel === panel);
     const startPanelRect = layoutPanel.rect;
+    let latestX = startMouseX;
+    let latestY = startMouseY;
+    let rafId = null;
     const onMouseMove = (ev) => {
-        const mouseX = ev.pageX;
-        const mouseY = ev.pageY;
-        panel.rect = new Dockable.Rect(startPanelRect.x, startPanelRect.y, Math.max(150, startPanelRect.w + mouseX - startMouseX), Math.max(50, startPanelRect.h + mouseY - startMouseY));
-        state.commit();
+        latestX = ev.pageX;
+        latestY = ev.pageY;
+        if (rafId !== null)
+            return;
+        rafId = requestAnimationFrame(() => {
+            rafId = null;
+            panel.rect = new Dockable.Rect(startPanelRect.x, startPanelRect.y, Math.max(150, startPanelRect.w + latestX - startMouseX), Math.max(50, startPanelRect.h + latestY - startMouseY));
+            state.commit();
+        });
     };
     const onMouseUp = () => {
+        if (rafId !== null)
+            cancelAnimationFrame(rafId);
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
     };
@@ -220,19 +230,20 @@ function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, dra
     const layoutPanel = layout.current.panelRects.find((p) => p.panel === draggedPanel);
     let startPanelRect = layoutPanel.rect;
     let dragLocked = true;
+    let latestX = startMouseX;
+    let latestY = startMouseY;
+    let rafId = null;
     const onMouseMove = (ev) => {
-        const mouseX = ev.pageX;
-        const mouseY = ev.pageY;
-        // Start dragging only when mouse moves far enough, and
-        // undock panel at this moment if originally docked
-        if (Math.abs(mouseX - startMouseX) > 10 ||
-            Math.abs(mouseY - startMouseY) > 10) {
+        latestX = ev.pageX;
+        latestY = ev.pageY;
+        // Start dragging only when mouse moves far enough — run immediately (no RAF)
+        if (dragLocked &&
+            (Math.abs(latestX - startMouseX) > 10 ||
+                Math.abs(latestY - startMouseY) > 10)) {
             dragLocked = false;
-            const floatingRect = new Dockable.Rect(mouseX -
-                Math.min(draggedPanel.preferredWidth / 2, mouseX - startPanelRect.x), mouseY - (mouseY - startPanelRect.y), draggedPanel.preferredWidth, draggedPanel.preferredHeight);
+            const floatingRect = new Dockable.Rect(latestX -
+                Math.min(draggedPanel.preferredWidth / 2, latestX - startPanelRect.x), latestY - (latestY - startPanelRect.y), draggedPanel.preferredWidth, draggedPanel.preferredHeight);
             if (draggedTabIndex !== null && draggedPanel.contentList.length > 1) {
-                // Remove single tab content from original panel and
-                // transfer it to a new floating panel
                 const content = draggedPanel.contentList[draggedTabIndex];
                 Dockable.removeContent(state.ref.current, draggedPanel, content.contentId);
                 draggedPanel = Dockable.makePanel(state.ref.current);
@@ -241,8 +252,6 @@ function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, dra
                 draggedPanel.rect = startPanelRect = floatingRect;
             }
             else if (!draggedPanel.floating) {
-                // Remove original docked panel and
-                // transfer all content to a new floating panel
                 const contents = [...draggedPanel.contentList];
                 const originalTabIndex = draggedPanel.currentTabIndex;
                 for (const content of contents)
@@ -258,31 +267,35 @@ function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, dra
             state.ref.current.showAnchors = true;
             state.commit();
         }
-        // Handle actual dragging
+        // Handle actual dragging with RAF throttle
         if (!dragLocked) {
-            // Move panel rect
-            draggedPanel.rect = startPanelRect.displace(mouseX - startMouseX, mouseY - startMouseY);
-            // Find nearest anchor
-            let nearestDistSqr = 50 * 50;
-            state.ref.current.previewAnchor = null;
-            for (const anchor of layout.current.anchors) {
-                if (anchor.panel === draggedPanel)
-                    continue;
-                const xx = anchor.x - mouseX;
-                const yy = anchor.y - mouseY;
-                const distSqr = xx * xx + yy * yy;
-                if (distSqr < nearestDistSqr) {
-                    nearestDistSqr = distSqr;
-                    state.ref.current.previewAnchor = anchor;
+            if (rafId !== null)
+                return;
+            rafId = requestAnimationFrame(() => {
+                rafId = null;
+                draggedPanel.rect = startPanelRect.displace(latestX - startMouseX, latestY - startMouseY);
+                let nearestDistSqr = 50 * 50;
+                state.ref.current.previewAnchor = null;
+                for (const anchor of layout.current.anchors) {
+                    if (anchor.panel === draggedPanel)
+                        continue;
+                    const xx = anchor.x - latestX;
+                    const yy = anchor.y - latestY;
+                    const distSqr = xx * xx + yy * yy;
+                    if (distSqr < nearestDistSqr) {
+                        nearestDistSqr = distSqr;
+                        state.ref.current.previewAnchor = anchor;
+                    }
                 }
-            }
-            state.commit();
+                state.commit();
+            });
         }
     };
     const onMouseUp = () => {
+        if (rafId !== null)
+            cancelAnimationFrame(rafId);
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
-        // Dock dragged panel if near an anchor
         if (state.ref.current.previewAnchor) {
             Dockable.dock(state.ref.current, draggedPanel, state.ref.current.previewAnchor.panel, state.ref.current.previewAnchor.mode);
         }
@@ -311,13 +324,23 @@ function handleClosedTab(ev, state, panel, tabNumber) {
 }
 function handleCloseWindow(ev, state, panel) {
     ev.preventDefault();
-    panel.contentList.forEach(({ contentId }) => Dockable.removeContent(state.ref.current, panel, contentId));
-    // i dont know why but it doesn't work without this
-    // it seems to leave active tab
-    if (panel.contentList.length > 0) {
-        const content = panel.contentList[0];
-        Dockable.removeContent(state.ref.current, panel, content.contentId);
-    }
+    // Snapshot the list first — removeContent splices the live array,
+    // so iterating it directly skips entries.
+    const contents = [...panel.contentList];
+    for (const { contentId } of contents)
+        Dockable.removeContent(state.ref.current, panel, contentId);
+    Dockable.coallesceEmptyPanels(state.ref.current);
+    state.commit();
+}
+function handlePopOut(ev, onPopOut, state, panel) {
+    ev.preventDefault();
+    if (!onPopOut)
+        return;
+    const content = panel.contentList[panel.currentTabIndex];
+    if (!content)
+        return;
+    onPopOut(content.element, content.title, content.contentId);
+    Dockable.removeContent(state.ref.current, panel, content.contentId);
     Dockable.coallesceEmptyPanels(state.ref.current);
     state.commit();
 }

@@ -1,11 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FaEye, FaLock, FaLockOpen, FaRegEye } from "react-icons/fa";
+import { FaEye, FaLock, FaLockOpen, FaRegEye, FaExternalLinkAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 const StyledPanelRoot = styled.div `
   position: absolute;
   box-sizing: border-box;
   contain: strict;
+  ${(props) => props.floating &&
+    `box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);`}
 `;
 const StyledTabRow = styled.div `
   background-color: var(--dockable-panelBkg);
@@ -18,6 +20,7 @@ const StyledTabRow = styled.div `
   overflow: hidden;
 
   border: 1px solid var(--dockable-panelInactiveBorder);
+  transition: border-color 0.15s ease;
 
   &.active {
     border: 1px solid var(--dockable-panelActiveBorder);
@@ -53,7 +56,7 @@ const StyledTabRowInner = styled.div `
 
   &::-webkit-scrollbar-thumb {
     background-color: var(--dockable-scrollbarColor);
-    border-radius: 0;
+    border-radius: 2px;
     border: 0;
   }
 `;
@@ -78,6 +81,11 @@ const StyledTab = styled.div `
   background-color: ${(props) => props.isCurrentTab
     ? "var(--dockable-panelBkg)"
     : "var(--dockable-panelTabBkg)"};
+
+  border-bottom: 2px solid
+    ${(props) => props.isCurrentTab ? "var(--dockable-anchorColor)" : "transparent"};
+
+  transition: background-color 0.1s ease, border-color 0.1s ease;
 `;
 const StyledButton = styled.button `
   pointer-events: auto;
@@ -90,7 +98,11 @@ const StyledButton = styled.button `
   width: 1.5em;
   height: 1.5em;
 
-  color: ${(props) => props.isCurrentTab ? "var(--dockable-panelTabTextColor)" : "transparent"};
+  color: ${(props) => props.isCurrentTab
+    ? "var(--dockable-panelTabTextColor)"
+    : "rgba(255,255,255,0.2)"};
+
+  transition: background-color 0.1s ease, color 0.1s ease;
 
   &:hover {
     background-color: var(--dockable-buttonHoverBkg);
@@ -130,6 +142,10 @@ export function ContainerPanel(props) {
                     } },
                     React.createElement(IoClose, null))))),
             React.createElement(StyledTabRowEmptySpace, null, !isRootPanel && (React.createElement(React.Fragment, null,
+                React.createElement(StyledButton, { title: "Pop Out to Window", isCurrentTab: true, onClick: (ev) => {
+                        props.onPopOut(ev);
+                    } },
+                    React.createElement(FaExternalLinkAlt, { size: 8 })),
                 React.createElement(StyledButton, { title: "Close Panel", isCurrentTab: true, onClick: (ev) => {
                         props.onCloseWindow(ev);
                     } },
@@ -171,7 +187,7 @@ export function ContainerPanel(props) {
                 }, isCurrentTab: true }, ">"),
             generateCompactModeSwitch()));
     };
-    return (React.createElement(StyledPanelRoot, { style: {
+    return (React.createElement(StyledPanelRoot, { floating: panelRect.floating, style: {
             left: `${panelRect.rect.x}px`,
             top: `${panelRect.rect.y}px`,
             width: `${panelRect.rect.w + 1}px`,

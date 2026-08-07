@@ -9,6 +9,7 @@ export declare function ContainerPanel(props: {
     onCloseTab: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>, tabNumber: number) => void;
     onDragHeader: (ev: React.MouseEvent<HTMLDivElement, MouseEvent>, tabNumber: number | null) => void;
     onCloseWindow: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+    onPopOut: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     onLockPanel: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>, locked: boolean) => void;
     onHidePanel: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>, hidden: boolean) => void;
 }): React.JSX.Element;

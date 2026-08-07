@@ -15,7 +15,7 @@ export const mousePos = {
 window.addEventListener("mousemove", (ev) => {
     mousePos.x = ev.pageX;
     mousePos.y = ev.pageY;
-});
+}, { passive: true });
 export function spawnFloating(state, elem) {
     const panel = Dockable.makePanel(state.ref.current);
     Dockable.addNewContent(state.ref.current, panel, elem);

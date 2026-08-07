@@ -2,7 +2,7 @@ import * as React from "react";
 import * as Dockable from "./index.js";
 import styled from "styled-components";
 
-import { FaEye, FaLock, FaLockOpen, FaRegEye } from "react-icons/fa";
+import { FaEye, FaLock, FaLockOpen, FaRegEye, FaExternalLinkAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
 const StyledPanelRoot = styled.div<{ floating: boolean }>`
@@ -156,6 +156,7 @@ export function ContainerPanel(props: {
     tabNumber: number | null
   ) => void;
   onCloseWindow: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  onPopOut: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   onLockPanel: (
     ev: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     locked: boolean
@@ -210,6 +211,15 @@ export function ContainerPanel(props: {
         <StyledTabRowEmptySpace>
           {!isRootPanel && (
             <>
+              <StyledButton
+                title="Pop Out to Window"
+                isCurrentTab={true}
+                onClick={(ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+                  props.onPopOut(ev);
+                }}
+              >
+                <FaExternalLinkAlt size={8} />
+              </StyledButton>
               <StyledButton
                 title="Close Panel"
                 isCurrentTab={true}

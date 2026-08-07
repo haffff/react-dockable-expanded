@@ -6,4 +6,5 @@ export declare function Container(props: {
     resizeHandleSize?: number;
     dividerSize?: number;
     tabHeight?: number;
+    onPopOut?: (element: Dockable.ContentElement, title: string, contentId: Dockable.ContentId) => void;
 }): React.JSX.Element;

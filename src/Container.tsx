@@ -81,6 +81,12 @@ export function Container(props: {
   resizeHandleSize?: number;
   dividerSize?: number;
   tabHeight?: number;
+
+  onPopOut?: (
+    element: Dockable.ContentElement,
+    title: string,
+    contentId: Dockable.ContentId
+  ) => void;
 }) {
   const [rect, setRect] = React.useState(new Dockable.Rect(0, 0, 0, 0));
   const rootRef = React.useRef<HTMLDivElement>(null);
@@ -177,6 +183,9 @@ export function Container(props: {
           }
           onCloseWindow={(ev) =>
             handleCloseWindow(ev, props.state, panelRect.panel)
+          }
+          onPopOut={(ev) =>
+            handlePopOut(ev, props.onPopOut, props.state, panelRect.panel)
           }
           onDragHeader={(ev, tabNumber) =>
             handleDraggedHeader(
@@ -579,6 +588,32 @@ function handleCloseWindow(
   for (const { contentId } of contents)
     Dockable.removeContent(state.ref.current, panel, contentId);
 
+  Dockable.coallesceEmptyPanels(state.ref.current);
+  state.commit();
+}
+
+function handlePopOut(
+  ev: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  onPopOut:
+    | ((
+        element: Dockable.ContentElement,
+        title: string,
+        contentId: Dockable.ContentId
+      ) => void)
+    | undefined,
+  state: Dockable.RefState<Dockable.State>,
+  panel: Dockable.Panel
+) {
+  ev.preventDefault();
+
+  if (!onPopOut) return;
+
+  const content = panel.contentList[panel.currentTabIndex];
+  if (!content) return;
+
+  onPopOut(content.element, content.title, content.contentId);
+
+  Dockable.removeContent(state.ref.current, panel, content.contentId);
   Dockable.coallesceEmptyPanels(state.ref.current);
   state.commit();
 }
