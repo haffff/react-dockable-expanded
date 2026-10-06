@@ -64,6 +64,34 @@ const StyledDivider = styled.div `
     opacity: 0.5;
   }
 `;
+// One panel's content and its ContentContext. The context value only changes when
+// something about THIS content's panel changes (its content, panel, tab, size or
+// floating). It used to be a new object on every Container render, and every dock
+// commit (a click in any panel, each mouse move while dragging or resizing one)
+// re-renders the Container, so every panel reading the context re-rendered every
+// time. With a stable value React skips the unchanged content element.
+// layoutContent is read through a getter, so whoever reads it gets the latest one.
+function ContentHost(props) {
+    const latest = React.useRef(props);
+    latest.current = props;
+    const { layoutContent } = props;
+    const value = React.useMemo(() => ({
+        get layoutContent() {
+            return latest.current.layoutContent;
+        },
+        setTitle: (title) => latest.current.setTitle(latest.current.layoutContent, title),
+        setPreferredSize: (w, h) => latest.current.setPreferredSize(latest.current.layoutContent, w, h),
+    }), [
+        layoutContent.content,
+        layoutContent.panel,
+        layoutContent.tabIndex,
+        layoutContent.layoutPanel.rect.w,
+        layoutContent.layoutPanel.rect.h,
+        layoutContent.panel.floating,
+    ]);
+    return (React.createElement(Dockable.ContentContext.Provider, { value: value },
+        React.createElement(StyledContentInner, null, layoutContent.content.element)));
+}
 export function Container(props) {
     const [rect, setRect] = React.useState(new Dockable.Rect(0, 0, 0, 0));
     const rootRef = React.useRef(null);
@@ -117,12 +145,7 @@ export function Container(props) {
                 height: layoutContent.layoutPanel.rect.h - tabHeight + "px",
                 zIndex: layoutContent.layoutPanel.zIndex * 3 + 1,
             } },
-            React.createElement(Dockable.ContentContext.Provider, { value: {
-                    layoutContent,
-                    setTitle: (title) => setTitle(layoutContent, title),
-                    setPreferredSize: (w, h) => setPreferredSize(layoutContent, w, h),
-                } },
-                React.createElement(StyledContentInner, null, layoutContent.content.element)),
+            React.createElement(ContentHost, { layoutContent: layoutContent, setTitle: setTitle, setPreferredSize: setPreferredSize }),
             layoutContent.panel.floating && (React.createElement(StyledBottomRightResizeHandle, { size: resizeHandleSize, onMouseDown: (ev) => {
                     handleClickedPanel(props.state, layoutContent.panel, null);
                     handleDraggedEdge(ev, props.state, layoutRef, layoutContent.panel);

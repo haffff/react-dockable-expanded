@@ -74,6 +74,49 @@ const StyledDivider = styled.div`
   }
 `;
 
+// One panel's content and its ContentContext. The context value only changes when
+// something about THIS content's panel changes (its content, panel, tab, size or
+// floating). It used to be a new object on every Container render, and every dock
+// commit (a click in any panel, each mouse move while dragging or resizing one)
+// re-renders the Container, so every panel reading the context re-rendered every
+// time. With a stable value React skips the unchanged content element.
+// layoutContent is read through a getter, so whoever reads it gets the latest one.
+function ContentHost(props: {
+  layoutContent: Dockable.LayoutContent;
+  setTitle: (layoutContent: Dockable.LayoutContent, title: string) => void;
+  setPreferredSize: (layoutContent: Dockable.LayoutContent, width: number, height: number) => void;
+}) {
+  const latest = React.useRef(props);
+  latest.current = props;
+
+  const { layoutContent } = props;
+  const value = React.useMemo(
+    () => ({
+      get layoutContent() {
+        return latest.current.layoutContent;
+      },
+      setTitle: (title: string) =>
+        latest.current.setTitle(latest.current.layoutContent, title),
+      setPreferredSize: (w: number, h: number) =>
+        latest.current.setPreferredSize(latest.current.layoutContent, w, h),
+    }),
+    [
+      layoutContent.content,
+      layoutContent.panel,
+      layoutContent.tabIndex,
+      layoutContent.layoutPanel.rect.w,
+      layoutContent.layoutPanel.rect.h,
+      layoutContent.panel.floating,
+    ]
+  );
+
+  return (
+    <Dockable.ContentContext.Provider value={value}>
+      <StyledContentInner>{layoutContent.content.element}</StyledContentInner>
+    </Dockable.ContentContext.Provider>
+  );
+}
+
 export function Container(props: {
   state: Dockable.RefState<Dockable.State>;
 
@@ -223,18 +266,11 @@ export function Container(props: {
             zIndex: layoutContent.layoutPanel.zIndex * 3 + 1,
           }}
         >
-          <Dockable.ContentContext.Provider
-            value={{
-              layoutContent,
-
-              setTitle: (title) => setTitle(layoutContent, title),
-              setPreferredSize: (w, h) => setPreferredSize(layoutContent, w, h),
-            }}
-          >
-            <StyledContentInner>
-              {layoutContent.content.element}
-            </StyledContentInner>
-          </Dockable.ContentContext.Provider>
+          <ContentHost
+            layoutContent={layoutContent}
+            setTitle={setTitle}
+            setPreferredSize={setPreferredSize}
+          />
 
           {layoutContent.panel.floating && (
             <StyledBottomRightResizeHandle
