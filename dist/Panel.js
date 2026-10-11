@@ -77,9 +77,11 @@ const StyledTab = styled.div `
   padding-right: 0.5em;
   user-select: none;
 
-  color: var(--dockable-panelTabTextColor);
+  color: ${(props) => props.isCurrentTab
+    ? "var(--dockable-panelTabActiveTextColor)"
+    : "var(--dockable-panelTabTextColor)"};
   background-color: ${(props) => props.isCurrentTab
-    ? "var(--dockable-panelBkg)"
+    ? "var(--dockable-panelTabActiveBkg)"
     : "var(--dockable-panelTabBkg)"};
 
   border-bottom: 2px solid
@@ -99,8 +101,8 @@ const StyledButton = styled.button `
   height: 1.5em;
 
   color: ${(props) => props.isCurrentTab
-    ? "var(--dockable-panelTabTextColor)"
-    : "rgba(255,255,255,0.2)"};
+    ? "var(--dockable-panelTabActiveTextColor)"
+    : "var(--dockable-panelTabInactiveButtonColor)"};
 
   transition: background-color 0.1s ease, color 0.1s ease;
 

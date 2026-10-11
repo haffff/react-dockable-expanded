@@ -8,6 +8,10 @@ const StyledContainer = styled.div `
   --dockable-panelActiveBorder: #555555;
   --dockable-panelTabBkg: #272727;
   --dockable-panelTabTextColor: #e8e8e8;
+  /* The current tab: the panel colour and the tab text colour unless set. */
+  --dockable-panelTabActiveBkg: var(--dockable-panelBkg);
+  --dockable-panelTabActiveTextColor: var(--dockable-panelTabTextColor);
+  --dockable-panelTabInactiveButtonColor: rgba(255,255,255,0.2);
   --dockable-overlayColor: #00aaff18;
   --dockable-anchorColor: #00aaff;
   --dockable-buttonHoverBkg: #3a3a3a;
