@@ -22,7 +22,7 @@ const StyledContainer = styled.div `
   background-color: var(--dockable-voidBkg);
 `;
 const StyledContentRoot = styled.div `
-  display: ${(props) => (props.isCurrentTab ? "grid" : "none")};
+  display: ${(props) => (props.isCurrentTab && !props.isMinimized ? "grid" : "none")};
   grid-template: 100% / 100%;
 
   position: absolute;
@@ -60,6 +60,48 @@ const StyledBottomRightResizeHandle = styled.div `
     opacity: 0.5;
   }
 `;
+const StyledMenu = styled.div `
+  position: absolute;
+  z-index: 1002;
+  min-width: 160px;
+  padding: 4px;
+  box-sizing: border-box;
+
+  background-color: var(--dockable-panelBkg);
+  border: 1px solid var(--dockable-panelActiveBorder);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  user-select: none;
+`;
+const StyledMenuItem = styled.button `
+  display: block;
+  width: 100%;
+  padding: 0.35em 0.75em;
+  border: 0;
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--dockable-panelTabTextColor);
+  font: inherit;
+  font-size: 0.85em;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--dockable-buttonHoverBkg);
+  }
+`;
+function isDockModifierHeld(ev, modifier) {
+    switch (modifier) {
+        case "None":
+            return true;
+        case "Ctrl":
+            return ev.ctrlKey;
+        case "Alt":
+            return ev.altKey;
+        default:
+            return ev.shiftKey;
+    }
+}
 const StyledDivider = styled.div `
   transition: background-color 0.15s ease;
 
@@ -103,6 +145,27 @@ export function Container(props) {
     const resizeHandleSize = props.resizeHandleSize ?? 10;
     const dividerSize = props.dividerSize ?? 6;
     const tabHeight = props.tabHeight ?? 25;
+    // Read through a ref by the drag handler, so changing the setting mid-session
+    // applies to the next drag without re-creating any handlers.
+    const dockModifierRef = React.useRef("Shift");
+    dockModifierRef.current = props.dockModifier ?? "Shift";
+    const [menu, setMenu] = React.useState(null);
+    React.useEffect(() => {
+        if (!menu)
+            return;
+        const close = () => setMenu(null);
+        const onKeyDown = (ev) => {
+            if (ev.key === "Escape")
+                close();
+        };
+        // Item mousedowns stop propagation, so any mousedown reaching the window is outside.
+        window.addEventListener("mousedown", close);
+        window.addEventListener("keydown", onKeyDown);
+        return () => {
+            window.removeEventListener("mousedown", close);
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, [menu]);
     React.useLayoutEffect(() => {
         const onResize = () => {
             if (!rootRef.current)
@@ -141,8 +204,33 @@ export function Container(props) {
         }
     };
     return (React.createElement(StyledContainer, { ref: rootRef },
-        layoutRef.current.panelRects.map((panelRect) => (React.createElement(Dockable.ContainerPanel, { key: panelRect.panel.id, state: props.state, panelRect: panelRect, tabHeight: tabHeight, onClickPanel: () => handleClickedPanel(props.state, panelRect.panel, null), onClickTab: (tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber), onCloseTab: (ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber), onCloseWindow: (ev) => handleCloseWindow(ev, props.state, panelRect.panel), onPopOut: (ev) => handlePopOut(ev, props.onPopOut, props.state, panelRect.panel), onDragHeader: (ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, panelRect.panel, tabNumber), onHidePanel: (ev, hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden), onLockPanel: (ev, locked) => handleLockedPanel(props.state, panelRect.panel, locked) }))),
-        layoutRef.current.content.map((layoutContent) => (React.createElement(StyledContentRoot, { key: layoutContent.content.contentId, isCurrentTab: layoutContent.panel.currentTabIndex == layoutContent.tabIndex, onMouseDown: () => handleClickedPanel(props.state, layoutContent.panel, null), style: {
+        layoutRef.current.panelRects.filter((panelRect) => !panelRect.minimized).map((panelRect) => (React.createElement(Dockable.ContainerPanel, { key: panelRect.panel.id, state: props.state, panelRect: panelRect, tabHeight: tabHeight, onClickPanel: () => handleClickedPanel(props.state, panelRect.panel, null), onClickTab: (tabNumber) => handleClickedPanel(props.state, panelRect.panel, tabNumber), onCloseTab: (ev, tabNumber) => handleClosedTab(ev, props.state, panelRect.panel, tabNumber), onCloseWindow: (ev) => handleCloseWindow(ev, props.state, panelRect.panel), onMinimize: (ev) => handleMinimize(ev, props.state, panelRect.panel), onOpenMenu: (buttonRect) => {
+                // A second click on the same ⋯ button closes the menu.
+                if (menu?.panel === panelRect.panel) {
+                    setMenu(null);
+                    return;
+                }
+                const containerRect = rootRef.current.getBoundingClientRect();
+                setMenu({
+                    panel: panelRect.panel,
+                    x: buttonRect.right - containerRect.x,
+                    y: buttonRect.bottom - containerRect.y + 2,
+                });
+            }, onDragHeader: (ev, tabNumber) => handleDraggedHeader(ev, props.state, layoutRef, rectRef, dockModifierRef, panelRect.panel, tabNumber), onHidePanel: (ev, hidden) => handleHiddenPanel(props.state, panelRect.panel, hidden) }))),
+        menu && (React.createElement(StyledMenu, { style: { left: menu.x + "px", top: menu.y + "px", transform: "translateX(-100%)" }, onMouseDown: (ev) => ev.stopPropagation() },
+            props.onPopOut && (React.createElement(StyledMenuItem, { onClick: (ev) => {
+                    setMenu(null);
+                    handlePopOut(ev, props.onPopOut, props.state, menu.panel);
+                } }, "Pop out to window")),
+            React.createElement(StyledMenuItem, { onClick: () => {
+                    setMenu(null);
+                    handleLockedPanel(props.state, menu.panel, !menu.panel.isLocked);
+                } }, menu.panel.isLocked ? "Unlock position" : "Lock position"),
+            React.createElement(StyledMenuItem, { onClick: () => {
+                    setMenu(null);
+                    handleHiddenPanel(props.state, menu.panel, true);
+                } }, "Hide header"))),
+        layoutRef.current.content.map((layoutContent) => (React.createElement(StyledContentRoot, { key: layoutContent.content.contentId, isCurrentTab: layoutContent.panel.currentTabIndex == layoutContent.tabIndex, isMinimized: layoutContent.layoutPanel.minimized, onMouseDown: () => handleClickedPanel(props.state, layoutContent.panel, null), style: {
                 left: layoutContent.layoutPanel.rect.x + "px",
                 top: layoutContent.layoutPanel.rect.y + tabHeight + "px",
                 width: layoutContent.layoutPanel.rect.w + "px",
@@ -150,7 +238,7 @@ export function Container(props) {
                 zIndex: layoutContent.layoutPanel.zIndex * 3 + 1,
             } },
             React.createElement(ContentHost, { layoutContent: layoutContent, setTitle: setTitle, setPreferredSize: setPreferredSize }),
-            layoutContent.panel.floating && (React.createElement(StyledBottomRightResizeHandle, { size: resizeHandleSize, onMouseDown: (ev) => {
+            layoutContent.panel.floating && !layoutContent.layoutPanel.minimized && (React.createElement(StyledBottomRightResizeHandle, { size: resizeHandleSize, onMouseDown: (ev) => {
                     handleClickedPanel(props.state, layoutContent.panel, null);
                     handleDraggedEdge(ev, props.state, layoutRef, layoutContent.panel);
                 } }))))),
@@ -247,22 +335,61 @@ function handleDraggedEdge(ev, state, layout, panel) {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
 }
-function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, draggedTabIndex) {
+function handleDraggedHeader(ev, state, layout, containerRect, dockModifier, draggedPanel, draggedTabIndex) {
     ev.preventDefault();
     ev.stopPropagation();
     if (draggedPanel.isLocked)
         return;
     const startMouseX = ev.pageX;
     const startMouseY = ev.pageY;
+    // Docking only happens while the dock modifier is held; without it a dragged
+    // panel just floats. Undocking (dragging a docked panel out) needs no key.
+    let dockHeld = isDockModifierHeld(ev, dockModifier.current);
     const layoutPanel = layout.current.panelRects.find((p) => p.panel === draggedPanel);
     let startPanelRect = layoutPanel.rect;
     let dragLocked = true;
     let latestX = startMouseX;
     let latestY = startMouseY;
     let rafId = null;
+    const scheduleDragFrame = () => {
+        if (rafId !== null)
+            return;
+        rafId = requestAnimationFrame(() => {
+            rafId = null;
+            draggedPanel.rect = startPanelRect.displace(latestX - startMouseX, latestY - startMouseY);
+            state.ref.current.showAnchors = dockHeld;
+            state.ref.current.previewAnchor = null;
+            if (dockHeld) {
+                let nearestDistSqr = 50 * 50;
+                for (const anchor of layout.current.anchors) {
+                    if (anchor.panel === draggedPanel)
+                        continue;
+                    const xx = anchor.x - latestX;
+                    const yy = anchor.y - latestY;
+                    const distSqr = xx * xx + yy * yy;
+                    if (distSqr < nearestDistSqr) {
+                        nearestDistSqr = distSqr;
+                        state.ref.current.previewAnchor = anchor;
+                    }
+                }
+            }
+            state.commit();
+        });
+    };
+    // Pressing or releasing the modifier without moving the mouse still updates
+    // the anchors and the preview.
+    const onKeyChange = (ev) => {
+        const held = isDockModifierHeld(ev, dockModifier.current);
+        if (held === dockHeld)
+            return;
+        dockHeld = held;
+        if (!dragLocked)
+            scheduleDragFrame();
+    };
     const onMouseMove = (ev) => {
         latestX = ev.pageX;
         latestY = ev.pageY;
+        dockHeld = isDockModifierHeld(ev, dockModifier.current);
         // Start dragging only when mouse moves far enough — run immediately (no RAF)
         if (dragLocked &&
             (Math.abs(latestX - startMouseX) > 10 ||
@@ -291,39 +418,22 @@ function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, dra
                 draggedPanel.rect = startPanelRect = floatingRect;
             }
             state.ref.current.draggedPanel = draggedPanel;
-            state.ref.current.showAnchors = true;
+            state.ref.current.showAnchors = dockHeld;
             state.commit();
         }
         // Handle actual dragging with RAF throttle
-        if (!dragLocked) {
-            if (rafId !== null)
-                return;
-            rafId = requestAnimationFrame(() => {
-                rafId = null;
-                draggedPanel.rect = startPanelRect.displace(latestX - startMouseX, latestY - startMouseY);
-                let nearestDistSqr = 50 * 50;
-                state.ref.current.previewAnchor = null;
-                for (const anchor of layout.current.anchors) {
-                    if (anchor.panel === draggedPanel)
-                        continue;
-                    const xx = anchor.x - latestX;
-                    const yy = anchor.y - latestY;
-                    const distSqr = xx * xx + yy * yy;
-                    if (distSqr < nearestDistSqr) {
-                        nearestDistSqr = distSqr;
-                        state.ref.current.previewAnchor = anchor;
-                    }
-                }
-                state.commit();
-            });
-        }
+        if (!dragLocked)
+            scheduleDragFrame();
     };
-    const onMouseUp = () => {
+    const onMouseUp = (ev) => {
         if (rafId !== null)
             cancelAnimationFrame(rafId);
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
-        if (state.ref.current.previewAnchor) {
+        window.removeEventListener("keydown", onKeyChange);
+        window.removeEventListener("keyup", onKeyChange);
+        dockHeld = isDockModifierHeld(ev, dockModifier.current);
+        if (dockHeld && state.ref.current.previewAnchor) {
             Dockable.dock(state.ref.current, draggedPanel, state.ref.current.previewAnchor.panel, state.ref.current.previewAnchor.mode);
         }
         Dockable.clampFloatingPanels(state.ref.current, containerRect.current);
@@ -334,6 +444,8 @@ function handleDraggedHeader(ev, state, layout, containerRect, draggedPanel, dra
     };
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("keydown", onKeyChange);
+    window.addEventListener("keyup", onKeyChange);
 }
 function handleClickedPanel(state, clickedPanel, tabNumber) {
     if (tabNumber !== null) {
@@ -351,12 +463,12 @@ function handleClosedTab(ev, state, panel, tabNumber) {
 }
 function handleCloseWindow(ev, state, panel) {
     ev.preventDefault();
-    // Snapshot the list first — removeContent splices the live array,
-    // so iterating it directly skips entries.
-    const contents = [...panel.contentList];
-    for (const { contentId } of contents)
-        Dockable.removeContent(state.ref.current, panel, contentId);
-    Dockable.coallesceEmptyPanels(state.ref.current);
+    Dockable.closePanel(state.ref.current, panel);
+    state.commit();
+}
+function handleMinimize(ev, state, panel) {
+    ev.preventDefault();
+    Dockable.minimizePanel(state.ref.current, panel);
     state.commit();
 }
 function handlePopOut(ev, onPopOut, state, panel) {

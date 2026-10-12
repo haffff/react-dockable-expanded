@@ -56,6 +56,7 @@ export interface Panel
 
     isHeaderHidden: boolean;
     isLocked: boolean;
+    isMinimized: boolean;
 }
 
 
@@ -101,6 +102,7 @@ export interface LayoutPanel
     panel: Panel
     rect: Rect
     floating: boolean
+    minimized: boolean
     zIndex: number
 }
 
@@ -135,6 +137,7 @@ export function makeState(): State
 
             isHeaderHidden: false,
             isLocked: false,
+            isMinimized: false,
         },
         floatingPanels: [],
         activePanel: null,
@@ -168,6 +171,7 @@ export function makePanel(state: State): Panel
 
         isHeaderHidden: false,
         isLocked: false,
+        isMinimized: false,
     }
     state.floatingPanels.push(panel)
     return panel
@@ -343,6 +347,10 @@ export function dock(state: State, panel: Panel, dockIntoPanel: Panel, mode: Doc
 
 export function setPanelActiveAndBringToFront(state: State, panel: Panel)
 {
+    // A minimized panel is hidden; it only comes back through restorePanel.
+    if (panel.isMinimized)
+        return
+
     if (panel.contentList.length != 0)
         state.activePanel = panel
 
@@ -354,6 +362,42 @@ export function setPanelActiveAndBringToFront(state: State, panel: Panel)
     
     if (!panel.ephemeral)
         removeEphemerals(state)
+}
+
+
+export function minimizePanel(state: State, panel: Panel)
+{
+    if (!panel.floating)
+        return
+
+    panel.isMinimized = true
+    if (state.activePanel === panel)
+        state.activePanel = null
+}
+
+
+export function restorePanel(state: State, panel: Panel)
+{
+    panel.isMinimized = false
+    setPanelActiveAndBringToFront(state, panel)
+}
+
+
+export function getMinimizedPanels(state: State): Panel[]
+{
+    return state.floatingPanels.filter(p => p.isMinimized)
+}
+
+
+export function closePanel(state: State, panel: Panel)
+{
+    // Snapshot the list first — removeContent splices the live array,
+    // so iterating it directly skips entries.
+    const contents = [...panel.contentList]
+    for (const { contentId } of contents)
+        removeContent(state, panel, contentId)
+
+    coallesceEmptyPanels(state)
 }
 
 
@@ -444,6 +488,7 @@ export function traverseLayout(panel: Panel, rect: Rect, layout: Layout)
             panel,
             rect,
             floating: false,
+            minimized: false,
             zIndex: 0,
         }
 
@@ -524,6 +569,7 @@ export function getLayout(state: State, rect: Rect): Layout
             panel: floatingPanel,
             rect: floatingPanel.rect,
             floating: true,
+            minimized: floatingPanel.isMinimized,
             zIndex: fp + 1,
         }
 
@@ -539,6 +585,11 @@ export function getLayout(state: State, rect: Rect): Layout
         }
 
         layout.panelRects.push(panelRect)
+
+        // Minimized panels keep their content in the layout (so it stays mounted,
+        // just hidden) but can't be docked into.
+        if (floatingPanel.isMinimized)
+            continue
 
         layout.anchors.push({
             panel: floatingPanel,

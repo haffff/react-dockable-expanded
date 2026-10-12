@@ -1,7 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FaEye, FaLock, FaLockOpen, FaRegEye, FaExternalLinkAlt } from "react-icons/fa";
+import { FaEye, FaLock } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import { VscChromeMinimize } from "react-icons/vsc";
+import { BsThreeDots } from "react-icons/bs";
 const StyledPanelRoot = styled.div `
   position: absolute;
   box-sizing: border-box;
@@ -91,6 +93,10 @@ const StyledTab = styled.div `
 `;
 const StyledButton = styled.button `
   pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   border: 0;
   border-radius: 0.25em;
   background-color: transparent;
@@ -121,7 +127,18 @@ const StyledTabRowEmptySpace = styled.div `
   pointer-events: none;
   display: flex;
   flex-direction: row-reverse;
+  align-items: center;
+  padding-right: 0.25em;
 `;
+const StyledLockBadge = styled.span `
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5em;
+  color: var(--dockable-panelTabInactiveButtonColor);
+`;
+const headerIconSize = 12;
+// Header buttons must not start a header drag (the tab row's mousedown).
+const stopDrag = (ev) => ev.stopPropagation();
 export function ContainerPanel(props) {
     const panelRect = props.panelRect;
     const isActivePanel = props.state.ref.current.activePanel === panelRect.panel;
@@ -144,21 +161,20 @@ export function ContainerPanel(props) {
                     } },
                     React.createElement(IoClose, null))))),
             React.createElement(StyledTabRowEmptySpace, null, !isRootPanel && (React.createElement(React.Fragment, null,
-                React.createElement(StyledButton, { title: "Pop Out to Window", isCurrentTab: true, onClick: (ev) => {
-                        props.onPopOut(ev);
-                    } },
-                    React.createElement(FaExternalLinkAlt, { size: 8 })),
-                React.createElement(StyledButton, { title: "Close Panel", isCurrentTab: true, onClick: (ev) => {
+                React.createElement(StyledButton, { title: "Close", isCurrentTab: true, onMouseDown: stopDrag, onClick: (ev) => {
                         props.onCloseWindow(ev);
                     } },
-                    React.createElement(IoClose, null)),
-                React.createElement(StyledButton, { title: !isLocked ? "Lock Panel" : "Unlock Panel", isCurrentTab: true, onClick: (ev) => {
-                        props.onLockPanel(ev, !isLocked);
-                    } }, isLocked ? React.createElement(FaLockOpen, { size: 8 }) : React.createElement(FaLock, { size: 8 })),
-                React.createElement(StyledButton, { title: "Hide Header", isCurrentTab: true, onClick: (ev) => {
-                        props.onHidePanel(ev, !hiddenTabRow);
+                    React.createElement(IoClose, { size: headerIconSize })),
+                panelRect.floating && (React.createElement(StyledButton, { title: "Minimize", isCurrentTab: true, onMouseDown: stopDrag, onClick: (ev) => {
+                        props.onMinimize(ev);
                     } },
-                    React.createElement(FaRegEye, { size: 8 })))))));
+                    React.createElement(VscChromeMinimize, { size: headerIconSize }))),
+                React.createElement(StyledButton, { title: "More", isCurrentTab: true, onMouseDown: stopDrag, onClick: (ev) => {
+                        props.onOpenMenu(ev.currentTarget.getBoundingClientRect());
+                    } },
+                    React.createElement(BsThreeDots, { size: headerIconSize })),
+                isLocked && (React.createElement(StyledLockBadge, { title: "Position locked" },
+                    React.createElement(FaLock, { size: 9 }))))))));
     };
     const generateCompactModeSwitch = () => {
         return (React.createElement(StyledButton, { title: "Show Header", style: { position: "absolute", right: 2 }, isCurrentTab: true, onClick: (ev) => {

@@ -41,7 +41,7 @@ There are no lint or test scripts configured.
 | `state.ts` | Core data model: `State`, `Panel`, `Content` interfaces; layout traversal (`traverseLayout`, `getLayout`) |
 | `global.ts` | Top-level hooks: `useDockable()`, `spawnFloating()`; mouse position tracking |
 | `Container.tsx` | Main render component; all drag/drop, resize, and anchor interactions live here |
-| `Panel.tsx` | Tab bar + panel chrome (close, hide, lock buttons) rendered per panel |
+| `Panel.tsx` | Tab bar + panel chrome rendered per panel: close, minimize (floating only) and a `⋯` button whose menu (pop out, lock, hide header) is rendered by `Container.tsx` |
 | `rect.ts` | `Rect` geometry utility class |
 | `refState.ts` | `useRefState<T>` — mutable ref state that triggers re-renders via an update token counter |
 
@@ -51,6 +51,8 @@ There are no lint or test scripts configured.
 - Floating panels are stored separately from the root tree
 - Each panel holds `Content` items (tabs); the active tab is rendered
 - Layout rectangles are computed by `getLayout()` / `traverseLayout()` from the root downward
+- Minimized floating panels (`isMinimized`, see `minimizePanel` / `restorePanel` / `getMinimizedPanels`) stay in the layout with `minimized: true` so their content stays mounted; they render hidden and have no anchors
+- Docking a dragged panel only happens while `Container`'s `dockModifier` key is held (`"Shift"` by default; `"None"` docks without a key)
 
 ### Consumer API
 

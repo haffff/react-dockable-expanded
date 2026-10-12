@@ -37,6 +37,7 @@ export interface Panel {
     ephemeral: boolean;
     isHeaderHidden: boolean;
     isLocked: boolean;
+    isMinimized: boolean;
 }
 export interface Content {
     contentId: ContentId;
@@ -67,6 +68,7 @@ export interface LayoutPanel {
     panel: Panel;
     rect: Rect;
     floating: boolean;
+    minimized: boolean;
     zIndex: number;
 }
 export interface LayoutContent {
@@ -88,6 +90,10 @@ export declare function coallesceEmptyPanels(state: State): void;
 export declare function coallesceEmptyPanelsRecursive(state: State, fromPanel: Panel): void;
 export declare function dock(state: State, panel: Panel, dockIntoPanel: Panel, mode: DockMode): void;
 export declare function setPanelActiveAndBringToFront(state: State, panel: Panel): void;
+export declare function minimizePanel(state: State, panel: Panel): void;
+export declare function restorePanel(state: State, panel: Panel): void;
+export declare function getMinimizedPanels(state: State): Panel[];
+export declare function closePanel(state: State, panel: Panel): void;
 export declare function clampFloatingPanels(state: State, rect: Rect): void;
 export declare function clampFloatingPanelStrictly(state: State, panel: Panel, rect: Rect): void;
 export declare function traverseLayout(panel: Panel, rect: Rect, layout: Layout): void;

@@ -2,8 +2,10 @@ import * as React from "react";
 import * as Dockable from "./index.js";
 import styled from "styled-components";
 
-import { FaEye, FaLock, FaLockOpen, FaRegEye, FaExternalLinkAlt } from "react-icons/fa";
+import { FaEye, FaLock } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import { VscChromeMinimize } from "react-icons/vsc";
+import { BsThreeDots } from "react-icons/bs";
 
 const StyledPanelRoot = styled.div<{ floating: boolean }>`
   position: absolute;
@@ -110,6 +112,10 @@ const StyledButton = styled.button<{
   isCurrentTab: boolean;
 }>`
   pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   border: 0;
   border-radius: 0.25em;
   background-color: transparent;
@@ -142,7 +148,21 @@ const StyledTabRowEmptySpace = styled.div`
   pointer-events: none;
   display: flex;
   flex-direction: row-reverse;
+  align-items: center;
+  padding-right: 0.25em;
 `;
+
+const StyledLockBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5em;
+  color: var(--dockable-panelTabInactiveButtonColor);
+`;
+
+const headerIconSize = 12;
+
+// Header buttons must not start a header drag (the tab row's mousedown).
+const stopDrag = (ev: React.MouseEvent) => ev.stopPropagation();
 
 export function ContainerPanel(props: {
   state: Dockable.RefState<Dockable.State>;
@@ -159,11 +179,8 @@ export function ContainerPanel(props: {
     tabNumber: number | null
   ) => void;
   onCloseWindow: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-  onPopOut: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-  onLockPanel: (
-    ev: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    locked: boolean
-  ) => void;
+  onMinimize: (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  onOpenMenu: (buttonRect: DOMRect) => void;
   onHidePanel: (
     ev: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     hidden: boolean
@@ -212,44 +229,46 @@ export function ContainerPanel(props: {
           </StyledTab>
         ))}
         <StyledTabRowEmptySpace>
+          {/* row-reverse: listed from the far right */}
           {!isRootPanel && (
             <>
               <StyledButton
-                title="Pop Out to Window"
+                title="Close"
                 isCurrentTab={true}
-                onClick={(ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-                  props.onPopOut(ev);
-                }}
-              >
-                <FaExternalLinkAlt size={8} />
-              </StyledButton>
-              <StyledButton
-                title="Close Panel"
-                isCurrentTab={true}
+                onMouseDown={stopDrag}
                 onClick={(ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
                   props.onCloseWindow(ev);
                 }}
               >
-                <IoClose />
+                <IoClose size={headerIconSize} />
               </StyledButton>
+              {panelRect.floating && (
+                <StyledButton
+                  title="Minimize"
+                  isCurrentTab={true}
+                  onMouseDown={stopDrag}
+                  onClick={(ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+                    props.onMinimize(ev);
+                  }}
+                >
+                  <VscChromeMinimize size={headerIconSize} />
+                </StyledButton>
+              )}
               <StyledButton
-                title={!isLocked ? "Lock Panel" : "Unlock Panel"}
+                title="More"
                 isCurrentTab={true}
+                onMouseDown={stopDrag}
                 onClick={(ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-                  props.onLockPanel(ev, !isLocked);
+                  props.onOpenMenu(ev.currentTarget.getBoundingClientRect());
                 }}
               >
-                {isLocked ? <FaLockOpen size={8} /> : <FaLock size={8} />}
+                <BsThreeDots size={headerIconSize} />
               </StyledButton>
-              <StyledButton
-                title={"Hide Header"}
-                isCurrentTab={true}
-                onClick={(ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-                  props.onHidePanel(ev, !hiddenTabRow);
-                }}
-              >
-                <FaRegEye size={8} />
-              </StyledButton>
+              {isLocked && (
+                <StyledLockBadge title="Position locked">
+                  <FaLock size={9} />
+                </StyledLockBadge>
+              )}
             </>
           )}
         </StyledTabRowEmptySpace>

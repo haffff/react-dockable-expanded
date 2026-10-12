@@ -29,6 +29,7 @@ export function makeState() {
             ephemeral: false,
             isHeaderHidden: false,
             isLocked: false,
+            isMinimized: false,
         },
         floatingPanels: [],
         activePanel: null,
@@ -53,6 +54,7 @@ export function makePanel(state) {
         ephemeral: false,
         isHeaderHidden: false,
         isLocked: false,
+        isMinimized: false,
     };
     state.floatingPanels.push(panel);
     return panel;
@@ -166,6 +168,9 @@ export function dock(state, panel, dockIntoPanel, mode) {
     }
 }
 export function setPanelActiveAndBringToFront(state, panel) {
+    // A minimized panel is hidden; it only comes back through restorePanel.
+    if (panel.isMinimized)
+        return;
     if (panel.contentList.length != 0)
         state.activePanel = panel;
     if (!panel.floating)
@@ -174,6 +179,28 @@ export function setPanelActiveAndBringToFront(state, panel) {
     state.floatingPanels.push(panel);
     if (!panel.ephemeral)
         removeEphemerals(state);
+}
+export function minimizePanel(state, panel) {
+    if (!panel.floating)
+        return;
+    panel.isMinimized = true;
+    if (state.activePanel === panel)
+        state.activePanel = null;
+}
+export function restorePanel(state, panel) {
+    panel.isMinimized = false;
+    setPanelActiveAndBringToFront(state, panel);
+}
+export function getMinimizedPanels(state) {
+    return state.floatingPanels.filter(p => p.isMinimized);
+}
+export function closePanel(state, panel) {
+    // Snapshot the list first — removeContent splices the live array,
+    // so iterating it directly skips entries.
+    const contents = [...panel.contentList];
+    for (const { contentId } of contents)
+        removeContent(state, panel, contentId);
+    coallesceEmptyPanels(state);
 }
 export function clampFloatingPanels(state, rect) {
     const margin = 10;
@@ -231,6 +258,7 @@ export function traverseLayout(panel, rect, layout) {
             panel,
             rect,
             floating: false,
+            minimized: false,
             zIndex: 0,
         };
         for (let w = 0; w < panel.contentList.length; w++) {
@@ -293,6 +321,7 @@ export function getLayout(state, rect) {
             panel: floatingPanel,
             rect: floatingPanel.rect,
             floating: true,
+            minimized: floatingPanel.isMinimized,
             zIndex: fp + 1,
         };
         for (let w = 0; w < floatingPanel.contentList.length; w++) {
@@ -304,6 +333,10 @@ export function getLayout(state, rect) {
             });
         }
         layout.panelRects.push(panelRect);
+        // Minimized panels keep their content in the layout (so it stays mounted,
+        // just hidden) but can't be docked into.
+        if (floatingPanel.isMinimized)
+            continue;
         layout.anchors.push({
             panel: floatingPanel,
             x: floatingPanel.rect.xCenter,
