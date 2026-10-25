@@ -222,6 +222,10 @@ export function Container(props) {
                     setMenu(null);
                     handlePopOut(ev, props.onPopOut, props.state, menu.panel);
                 } }, "Pop out to window")),
+            menuContent(menu.panel) && props.menuItems?.(menuContent(menu.panel)).map((item, i) => (React.createElement(StyledMenuItem, { key: "extra" + i, onClick: () => {
+                    setMenu(null);
+                    item.onClick();
+                } }, item.label))),
             React.createElement(StyledMenuItem, { onClick: () => {
                     setMenu(null);
                     handleLockedPanel(props.state, menu.panel, !menu.panel.isLocked);
@@ -470,6 +474,9 @@ function handleMinimize(ev, state, panel) {
     ev.preventDefault();
     Dockable.minimizePanel(state.ref.current, panel);
     state.commit();
+}
+function menuContent(panel) {
+    return panel.contentList[panel.currentTabIndex];
 }
 function handlePopOut(ev, onPopOut, state, panel) {
     ev.preventDefault();

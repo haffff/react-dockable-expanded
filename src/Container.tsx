@@ -194,6 +194,12 @@ export function Container(props: {
     title: string,
     contentId: Dockable.ContentId
   ) => void;
+
+  /**
+   * Extra items for a panel's ⋯ header menu, about the panel's current tab. Called each time
+   * the menu opens; return [] for none. Shown after "Pop out to window".
+   */
+  menuItems?: (content: Dockable.Content) => ContainerMenuItem[];
 }) {
   const [rect, setRect] = React.useState(new Dockable.Rect(0, 0, 0, 0));
   const rootRef = React.useRef<HTMLDivElement>(null);
@@ -361,6 +367,17 @@ export function Container(props: {
               Pop out to window
             </StyledMenuItem>
           )}
+          {menuContent(menu.panel) && props.menuItems?.(menuContent(menu.panel)!).map((item, i) => (
+            <StyledMenuItem
+              key={"extra" + i}
+              onClick={() => {
+                setMenu(null);
+                item.onClick();
+              }}
+            >
+              {item.label}
+            </StyledMenuItem>
+          ))}
           <StyledMenuItem
             onClick={() => {
               setMenu(null);
@@ -789,6 +806,16 @@ function handleMinimize(
 
   Dockable.minimizePanel(state.ref.current, panel);
   state.commit();
+}
+
+/** An extra entry of a panel's ⋯ header menu (Container's menuItems). */
+export interface ContainerMenuItem {
+  label: string;
+  onClick: () => void;
+}
+
+function menuContent(panel: Dockable.Panel): Dockable.Content | undefined {
+  return panel.contentList[panel.currentTabIndex];
 }
 
 function handlePopOut(
